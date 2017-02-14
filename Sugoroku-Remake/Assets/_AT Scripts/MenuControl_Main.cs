@@ -5,6 +5,7 @@ using UnityEngine;
 public class MenuControl_Main : MonoBehaviour
 {
     public GameObject addPlayerPanel;
+    public GameObject startMissionPanel;
     public GameObject exitGamePanel;
     public GameObject soundOptionsPanel;
     public GameObject createNewCharacterPanel;
@@ -40,6 +41,7 @@ public class MenuControl_Main : MonoBehaviour
     private void DeactivateAllPanels()
     {
         addPlayerPanel.SetActive(false);
+        startMissionPanel.SetActive(false);
         exitGamePanel.SetActive(false);
         soundOptionsPanel.SetActive(false);
         createNewCharacterPanel.SetActive(false);
@@ -67,12 +69,29 @@ public class MenuControl_Main : MonoBehaviour
     public void StartMissionClicked()
     {
         Debug.Log("StartMissionClicked()");
+        activePlayer = -1;
+        activeCharacter = -1;
+        activeItem = -1;
+        isDeleteActive = false;
+        DeactivateAllPanels();
+        startMissionPanel.SetActive(true);
+    }
+
+
+    public void StartMissionConfirmed()
+    {
+        Debug.Log("StartMissionConfirmed()");
     }
 
 
     public void SoundOptionsClicked()
     {
         Debug.Log("SoundOptionsClicked()");
+        activePlayer = -1;
+        activeCharacter = -1;
+        activeItem = -1;
+        isDeleteActive = false;
+        DeactivateAllPanels();
         soundOptionsPanel.SetActive(true);
     }
 
@@ -80,6 +99,11 @@ public class MenuControl_Main : MonoBehaviour
     public void ExitGameClicked()
     {
         Debug.Log("ExitGameClicked()");
+        activePlayer = -1;
+        activeCharacter = -1;
+        activeItem = -1;
+        isDeleteActive = false;
+        DeactivateAllPanels();
         exitGamePanel.SetActive(true);
     }
 
