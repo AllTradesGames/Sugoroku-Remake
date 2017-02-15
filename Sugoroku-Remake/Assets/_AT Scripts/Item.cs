@@ -16,4 +16,15 @@ public class Item
         
     }
 
+    public Item(string inName, string inImageName, int inBasePrice, int inPricePerLevel, int inItemEffect, int inEffectAmount, bool inIsIdentified)
+    {
+        name = inName;
+        imageName = inImageName;
+        basePrice = inBasePrice;
+        pricePerLevel = inPricePerLevel;
+        itemEffect = inItemEffect;
+        effectAmount = inEffectAmount;
+        isIdentified = inIsIdentified;
+    }
+
 }

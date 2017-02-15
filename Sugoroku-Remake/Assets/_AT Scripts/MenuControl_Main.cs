@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class MenuControl_Main : MonoBehaviour
 {
+    public string pathToItemImages = "/Images/Items/";
+
     public GameObject addPlayerPanel;
     public GameObject startMissionPanel;
     public GameObject exitGamePanel;
