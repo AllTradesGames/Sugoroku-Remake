@@ -43,6 +43,8 @@ public class MenuControl_Main : MonoBehaviour
     private float tempFloat = 0f;
     private int tempInt = 0;
     private bool tempBool = false;
+
+    private int tempHPPoints = 0;
     
 
 	// Use this for initialization
@@ -400,6 +402,7 @@ public class MenuControl_Main : MonoBehaviour
         Debug.Log("AddPlayerClicked()");
         DeactivateAllPanels();
         addPlayerPanel.SetActive(true);
+        InitializeSavedCharacterBoxes();
     }
 
 
@@ -568,7 +571,55 @@ public class MenuControl_Main : MonoBehaviour
         itemOptionsPanel.SetActive(false);
         sellItemPanel.SetActive(false);
         identifyItemPanel.SetActive(false);
+
+        tempInt = 0;
+        tempInt = dataScript.playerList[activePlayer].level;
+        tempInt = 50 * ((((tempInt - 1) * tempInt) / 2) + 2);
+        restoreHPPanel.transform.FindChild("Text").GetComponent<Text>().text = "It costs " + tempInt + " Cr to heal 1 HP. How much would you like to heal?";
+        dataScript.playerList[activePlayer].currentHP = dataScript.playerList[activePlayer].tempMaxHP;
+        restoreHPPanel.transform.FindChild("Health/Slider").GetComponent<Slider>().maxValue = dataScript.playerList[activePlayer].maxHP;
+        restoreHPPanel.transform.FindChild("Health/Slider").GetComponent<Slider>().value = dataScript.playerList[activePlayer].tempMaxHP;
+        restoreHPPanel.transform.FindChild("Health/Cost").GetComponent<Text>().text = dataScript.playerList[activePlayer].credits + " Cr";
+        restoreHPPanel.transform.FindChild("Health/HealthText").GetComponent<Text>().text = dataScript.playerList[activePlayer].tempMaxHP + "/" + dataScript.playerList[activePlayer].maxHP;
+        tempHPPoints = 0;
         restoreHPPanel.SetActive(true);
+    }
+
+
+    public void AddHP()
+    {
+        if(((dataScript.playerList[activePlayer].tempMaxHP + tempHPPoints) < dataScript.playerList[activePlayer].maxHP) && ((dataScript.playerList[activePlayer].credits - (tempInt * (tempHPPoints + 1))) > 0))
+        {
+            tempHPPoints++;
+            restoreHPPanel.transform.FindChild("Health/Slider").GetComponent<Slider>().value = dataScript.playerList[activePlayer].tempMaxHP + tempHPPoints;
+            restoreHPPanel.transform.FindChild("Health/Cost").GetComponent<Text>().text = (dataScript.playerList[activePlayer].credits - (tempInt * tempHPPoints)) + " Cr";
+            restoreHPPanel.transform.FindChild("Health/HealthText").GetComponent<Text>().text = (dataScript.playerList[activePlayer].tempMaxHP + tempHPPoints) + "/" + dataScript.playerList[activePlayer].maxHP;
+        }
+    }
+
+
+    public void SubtractHP()
+    {
+        if(tempHPPoints > 0)
+        {
+            tempHPPoints--;
+            restoreHPPanel.transform.FindChild("Health/Slider").GetComponent<Slider>().value = dataScript.playerList[activePlayer].tempMaxHP + tempHPPoints;
+            restoreHPPanel.transform.FindChild("Health/Cost").GetComponent<Text>().text = (dataScript.playerList[activePlayer].credits - (tempInt * tempHPPoints)) + " Cr";
+            restoreHPPanel.transform.FindChild("Health/HealthText").GetComponent<Text>().text = (dataScript.playerList[activePlayer].tempMaxHP + tempHPPoints) + "/" + dataScript.playerList[activePlayer].maxHP;
+        }
+    }
+
+
+    public void RestoreHPConfirmed()
+    {
+        dataScript.playerList[activePlayer].credits -= tempInt * tempHPPoints;
+        dataScript.playerList[activePlayer].tempMaxHP += tempHPPoints;
+        dataScript.playerList[activePlayer].currentHP = dataScript.playerList[activePlayer].tempMaxHP;
+
+        dataScript.PostPlayerToSavedCharacter(activePlayer);
+        InitializePlayerBoxes();
+        InitializeSavedCharacterBoxes();
+        restoreHPPanel.SetActive(false);
     }
 
 
