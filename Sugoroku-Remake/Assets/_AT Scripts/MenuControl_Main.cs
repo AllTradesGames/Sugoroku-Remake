@@ -1,10 +1,22 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class MenuControl_Main : MonoBehaviour
 {
+    public DataControl dataScript;
+
     public string pathToItemImages = "/Images/Items/";
+
+    public GameObject startMissionButton;
+
+    public GameObject playerBoxPlaceholder;
+    public GameObject playerBoxPrefab;
+    public GameObject addPlayerButton;
+
+    public GameObject savedCharacterPlaceholder;
+    public GameObject savedCharacterPrefab;
 
     public GameObject addPlayerPanel;
     public GameObject startMissionPanel;
@@ -26,18 +38,194 @@ public class MenuControl_Main : MonoBehaviour
     private int activePlayer = -1;
     private int activeCharacter = -1;
     private int activeItem = -1;
+    private GameObject tempObject;
+    private float tempFloat = 0f;
+    private int tempInt = 0;
+    
 
 	// Use this for initialization
 	void Start ()
     {
-		
-	}
-	
-	// Update is called once per frame
-	void Update ()
+        CheckStartMissionStatus();
+        InitializePlayerBoxes();
+        InitializeSavedCharacterBoxes();
+    }
+
+
+    private void CheckStartMissionStatus()
+    { // TODO include a call to this function when a new character is created
+        if (dataScript.playerList.Count > 0)
+        {
+            startMissionButton.SetActive(true);
+        }
+        else
+        {
+            startMissionButton.SetActive(false);
+        }
+    }
+
+
+    private void InitializePlayerBoxes()
     {
-		
-	}
+        playerBoxPlaceholder.transform.SetAsLastSibling();
+        for (int ii=playerBoxPlaceholder.transform.GetSiblingIndex(); ii > 0; ii--)
+        {
+            Destroy(playerBoxPlaceholder.transform.parent.GetChild(ii - 1).gameObject);
+        }
+
+        tempInt = 0;
+        tempObject = null;
+        tempFloat = playerBoxPlaceholder.transform.position.x;
+        foreach (Character character in dataScript.playerList)
+        {
+            if (tempObject)
+            {
+                // TODO                                        vvvv   Make that not hardcoded.
+                tempFloat = tempObject.transform.position.x + 209.5f;
+            }
+            tempObject = Instantiate(playerBoxPrefab, playerBoxPlaceholder.transform.parent) as GameObject;
+            tempObject.transform.SetSiblingIndex(tempInt);
+            tempObject.transform.position = new Vector3(tempFloat, playerBoxPlaceholder.transform.position.y, playerBoxPlaceholder.transform.position.z);
+            tempObject.transform.FindChild("Character Name").GetComponent<Text>().text = character.name;
+            tempObject.transform.FindChild("Level Text").GetComponent<Text>().text = "Lv " + character.level;
+            tempObject.transform.FindChild("Attack/Attack Text").GetComponent<Text>().text = character.attackBonus.ToString();
+            tempObject.transform.FindChild("Movement/Movement Text").GetComponent<Text>().text = character.movementBonus.ToString();
+            tempObject.transform.FindChild("Defense/Defense Text").GetComponent<Text>().text = character.defenseBonus.ToString();
+            tempObject.transform.FindChild("Credits/Credits Text").GetComponent<Text>().text = character.credits.ToString();
+            tempObject.transform.FindChild("Health/HP Text").GetComponent<Text>().text = character.currentHP + "/" + character.tempMaxHP;
+            tempObject.transform.FindChild("Health/Red Slider").GetComponent<Slider>().value = ((float)character.tempMaxHP) / ((float)character.maxHP);
+            tempObject.transform.FindChild("Health/Red Slider/Green Slider").GetComponent<Slider>().value = ((float)character.currentHP) / ((float)character.maxHP);
+            switch(tempInt)
+            {
+                case 0:
+                    tempObject.GetComponent<Button>().onClick.AddListener(delegate { PlayerClicked(0); });
+                    break;
+                case 1:
+                    tempObject.GetComponent<Button>().onClick.AddListener(delegate { PlayerClicked(1); });
+                    break;
+                case 2:
+                    tempObject.GetComponent<Button>().onClick.AddListener(delegate { PlayerClicked(2); });
+                    break;
+                case 3:
+                    tempObject.GetComponent<Button>().onClick.AddListener(delegate { PlayerClicked(3); });
+                    break;
+            }            
+
+            tempInt++;
+        }
+        if (tempObject)
+        {
+            // TODO                                                                             vvvv   Make that not hardcoded.
+            addPlayerButton.transform.position = new Vector3(tempObject.transform.position.x + 179.4f, addPlayerButton.transform.position.y, addPlayerButton.transform.position.z);
+        }
+        else
+        {
+            // TODO                                                 vvvv   Make that not hardcoded.
+            addPlayerButton.transform.localPosition = new Vector3(-323.95f, addPlayerButton.transform.localPosition.y, addPlayerButton.transform.localPosition.z);
+        }
+        playerBoxPlaceholder.SetActive(false);
+        tempObject = null;
+    }
+
+
+    private void InitializeSavedCharacterBoxes()
+    {
+        savedCharacterPlaceholder.transform.SetAsLastSibling();
+        for (int ii = savedCharacterPlaceholder.transform.GetSiblingIndex(); ii > 0; ii--)
+        {
+            Destroy(savedCharacterPlaceholder.transform.parent.GetChild(ii - 1).gameObject);
+        }
+
+        tempInt = 0;
+        tempObject = null;
+        tempFloat = savedCharacterPlaceholder.transform.position.y;
+        foreach (Character character in dataScript.savedCharacterListClass.list)
+        {
+            if (tempObject)
+            {
+                // TODO                                        vvvv   Make that not hardcoded.
+                tempFloat = tempObject.transform.position.y - 151.3f;
+            }
+            tempObject = Instantiate(savedCharacterPlaceholder, savedCharacterPlaceholder.transform.parent) as GameObject;
+            if(tempObject.transform.parent.gameObject.activeInHierarchy)
+            {
+                tempObject.SetActive(true);
+            }
+            tempObject.transform.SetSiblingIndex(tempInt);
+            tempObject.transform.position = new Vector3(savedCharacterPlaceholder.transform.position.x, tempFloat, savedCharacterPlaceholder.transform.position.z);
+            tempObject.transform.FindChild("Character Name").GetComponent<Text>().text = character.name;
+            tempObject.transform.FindChild("Level Text").GetComponent<Text>().text = "Lv " + character.level;
+            tempObject.transform.FindChild("Attack/Attack Text").GetComponent<Text>().text = character.attackBonus.ToString();
+            tempObject.transform.FindChild("Movement/Movement Text").GetComponent<Text>().text = character.movementBonus.ToString();
+            tempObject.transform.FindChild("Defense/Defense Text").GetComponent<Text>().text = character.defenseBonus.ToString();
+            tempObject.transform.FindChild("Credits/Credits Text").GetComponent<Text>().text = character.credits.ToString();
+            tempObject.transform.FindChild("Health/HP Text").GetComponent<Text>().text = character.currentHP + "/" + character.tempMaxHP;
+            tempObject.transform.FindChild("Health/Red Slider").GetComponent<Slider>().value = ((float)character.tempMaxHP) / ((float)character.maxHP);
+            tempObject.transform.FindChild("Health/Red Slider/Green Slider").GetComponent<Slider>().value = ((float)character.currentHP) / ((float)character.maxHP);
+            switch (tempInt)
+            {
+                case 0:
+                    tempObject.GetComponent<Button>().onClick.AddListener(delegate { SavedCharacterClicked(0); });
+                    break;
+                case 1:
+                    tempObject.GetComponent<Button>().onClick.AddListener(delegate { SavedCharacterClicked(1); });
+                    break;
+                case 2:
+                    tempObject.GetComponent<Button>().onClick.AddListener(delegate { SavedCharacterClicked(2); });
+                    break;
+                case 3:
+                    tempObject.GetComponent<Button>().onClick.AddListener(delegate { SavedCharacterClicked(3); });
+                    break;
+                case 4:
+                    tempObject.GetComponent<Button>().onClick.AddListener(delegate { SavedCharacterClicked(4); });
+                    break;
+                case 5:
+                    tempObject.GetComponent<Button>().onClick.AddListener(delegate { SavedCharacterClicked(5); });
+                    break;
+                case 6:
+                    tempObject.GetComponent<Button>().onClick.AddListener(delegate { SavedCharacterClicked(6); });
+                    break;
+                case 7:
+                    tempObject.GetComponent<Button>().onClick.AddListener(delegate { SavedCharacterClicked(7); });
+                    break;
+                case 8:
+                    tempObject.GetComponent<Button>().onClick.AddListener(delegate { SavedCharacterClicked(8); });
+                    break;
+                case 9:
+                    tempObject.GetComponent<Button>().onClick.AddListener(delegate { SavedCharacterClicked(9); });
+                    break;
+                case 10:
+                    tempObject.GetComponent<Button>().onClick.AddListener(delegate { SavedCharacterClicked(10); });
+                    break;
+                case 11:
+                    tempObject.GetComponent<Button>().onClick.AddListener(delegate { SavedCharacterClicked(11); });
+                    break;
+                case 12:
+                    tempObject.GetComponent<Button>().onClick.AddListener(delegate { SavedCharacterClicked(12); });
+                    break;
+                case 13:
+                    tempObject.GetComponent<Button>().onClick.AddListener(delegate { SavedCharacterClicked(13); });
+                    break;
+                case 14:
+                    tempObject.GetComponent<Button>().onClick.AddListener(delegate { SavedCharacterClicked(14); });
+                    break;
+                case 15:
+                    tempObject.GetComponent<Button>().onClick.AddListener(delegate { SavedCharacterClicked(15); });
+                    break;
+            }
+
+            tempInt++;
+        }
+        savedCharacterPlaceholder.SetActive(false);
+        tempObject = null;
+    }
+
+
+    // Update is called once per frame
+    void Update ()
+    {
+
+    }
 
 
     private void DeactivateAllPanels()
@@ -130,6 +318,21 @@ public class MenuControl_Main : MonoBehaviour
     }
 
 
+    public void DeleteCharacterConfirmed()
+    {
+        Debug.Log("DeleteCharacterConfirmed(" + activeCharacter + ")");
+        deleteCharacterPanel.SetActive(false);
+        isDeleteActive = false;
+
+        dataScript.savedCharacterListClass.list.RemoveAt(activeCharacter);
+        dataScript.SaveCharacters();
+        dataScript.LoadSavedCharacters();
+        CheckStartMissionStatus();
+        InitializePlayerBoxes();
+        InitializeSavedCharacterBoxes();
+    }
+
+
     public void InviteFriendClicked()
     {
         Debug.Log("InviteFriendClicked()");
@@ -215,14 +418,7 @@ public class MenuControl_Main : MonoBehaviour
     {
         Debug.Log("SavedCharacterSelectConfirmed(" + activeCharacter + ")");
         addPlayerPanel.SetActive(false);
-    }
-
-
-    public void DeleteCharacterConfirmed()
-    {
-        Debug.Log("DeleteCharacterConfirmed(" + activeCharacter + ")");
-        deleteCharacterPanel.SetActive(false);
-        isDeleteActive = false;
+        CheckStartMissionStatus();
     }
 
 

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 [Serializable]
 public class Character
@@ -19,6 +18,7 @@ public class Character
     public int defenseBonus;
     public int credits;
     public int[] itemIdexes;
+    public bool inParty;
 
     public Character()
     {
@@ -36,6 +36,7 @@ public class Character
         defenseBonus = 0;
         credits = 0;
         itemIdexes = new int[6];
+        inParty = true; 
     }
 
     public Character(int mockDataIndex)
@@ -58,6 +59,7 @@ public class Character
                 defenseBonus = 1;
                 credits = 0;
                 itemIdexes = new int[6];
+                inParty = true;
                 break;
             case 1:
                 name = "Mock_1";
@@ -73,8 +75,9 @@ public class Character
                 movementBonus = 4;
                 attackBonus = 1;
                 defenseBonus = 0;
-                credits = 0;
+                credits = 236;
                 itemIdexes = new int[6] {3, 0, 0, 0, 0, 0};
+                inParty = false;
                 break;
             case 2:
                 name = "Mock_2";
@@ -90,8 +93,9 @@ public class Character
                 movementBonus = 1;
                 attackBonus = 2;
                 defenseBonus = 6;
-                credits = 0;
+                credits = 2734;
                 itemIdexes = new int[6] { 1, 2, 2, 3, 0, 0 };
+                inParty = true;
                 break;
         }
         

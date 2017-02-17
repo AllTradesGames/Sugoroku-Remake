@@ -56,6 +56,8 @@ public class DataControl : MonoBehaviour
 
     void Awake()
     {
+        File.Delete(Application.persistentDataPath + "/" + savedCharacterFileName);   // TODO REMOVE AFTER TESTING
+
         if (FindObjectsOfType(GetType()).Length > 1)
         {
             Destroy(this.gameObject);
@@ -104,6 +106,15 @@ public class DataControl : MonoBehaviour
             file = File.Open(Application.persistentDataPath + "/" + savedCharacterFileName, FileMode.Open);
             savedCharacterListClass = (CharacterListClass)bf.Deserialize(file);
             file.Close();
+
+            playerList.Clear();
+            foreach (Character character in savedCharacterListClass.list)
+            {
+                if(character.inParty)
+                {
+                    playerList.Add(character);
+                }
+            }
         }
         else
         {
@@ -111,9 +122,11 @@ public class DataControl : MonoBehaviour
             savedCharacterListClass.list.Add(new Character(0));
             savedCharacterListClass.list.Add(new Character(1));
             savedCharacterListClass.list.Add(new Character(2));
-
-            // Debug.Log("Creating empty saved character file..");
             SaveCharacters();
+            LoadSavedCharacters();
+
+            /*Debug.Log("Creating empty saved character file..");
+            SaveCharacters();*/
         }
     } 
 
