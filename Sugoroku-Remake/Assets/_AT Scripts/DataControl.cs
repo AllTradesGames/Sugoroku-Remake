@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
@@ -35,6 +36,14 @@ public enum ItemEffect
     NPC3NoCounter
 }
 
+public enum Stat
+{
+    Movement,
+    Attack, 
+    Defense,
+    Health
+}
+
 public class DataControl : MonoBehaviour
 {
     public const int NUM_ITEM_SECTIONS = 3;
@@ -50,6 +59,7 @@ public class DataControl : MonoBehaviour
 
     private List<Item> tempItemList = new List<Item>();
     private int tempInt = 0;
+    private bool tempBool = false;
     private BinaryFormatter bf = new BinaryFormatter();
     private FileStream file;
 
@@ -99,7 +109,6 @@ public class DataControl : MonoBehaviour
 
     public void LoadSavedCharacters()
     {
-        
         if (File.Exists(Application.persistentDataPath + "/" + savedCharacterFileName))
         {
             Debug.Log("Loading saved characters...");
@@ -107,18 +116,41 @@ public class DataControl : MonoBehaviour
             savedCharacterListClass = (CharacterListClass)bf.Deserialize(file);
             file.Close();
 
-            playerList.Clear();
-            foreach (Character character in savedCharacterListClass.list)
-            {
-                if(character.inParty)
+            // Remove players from playerList that are not in the party
+            for (int ii= 0; ii < playerList.Count; ii++)
+            {   
+                if (!savedCharacterListClass.list[playerList[ii].savedCharacterID].inParty)
                 {
-                    playerList.Add(character);
+                    playerList.Remove(playerList[ii]);
                 }
             }
+
+            // Add characters to playerList that are in the party
+            for (int ii= 0; ii < savedCharacterListClass.list.Count; ii++)
+            {
+                if(savedCharacterListClass.list[ii].inParty)
+                {
+                    tempBool = true;
+                    for (int jj=0; jj < playerList.Count; jj++)
+                    {
+                        if(playerList[jj].savedCharacterID == ii)
+                        {
+                            playerList[jj] = (Character)savedCharacterListClass.list[ii].Clone();
+                            tempBool = false;
+                        }
+                    }
+                    if(tempBool)
+                    {
+                        playerList.Add(savedCharacterListClass.list[ii]);
+                    }
+                }
+            }
+
+
         }
         else
         {
-            // TODO Mock character data here - REMOVE AFTER TESTING
+            // TODO - REMOVE AFTER TESTING
             savedCharacterListClass.list.Add(new Character(0));
             savedCharacterListClass.list.Add(new Character(1));
             savedCharacterListClass.list.Add(new Character(2));
@@ -138,6 +170,14 @@ public class DataControl : MonoBehaviour
         bf.Serialize(file, savedCharacterListClass);
         file.Close();
     }
+
+
+    public void PostPlayerToSavedCharacter(int playerIndex)
+    {
+        savedCharacterListClass.list[playerList[playerIndex].savedCharacterID] = playerList[playerIndex];
+        SaveCharacters();
+        LoadSavedCharacters();
+    } 
 
 
     public void LoadItemList(int section)
@@ -167,6 +207,56 @@ public class DataControl : MonoBehaviour
 
         }
     }
+
+
+    public void UpdateStatBonus(int playerIndex, Stat inputStat)
+    {
+        tempInt = 0;
+        switch(inputStat)
+        {
+            case Stat.Movement:
+                tempInt = playerList[playerIndex].movementPoints / 3;
+                foreach(int itemIndex in playerList[playerIndex].itemIndices)
+                {
+                    if(masterItemListClass.list[itemIndex].itemEffect == (int)ItemEffect.Movement)
+                    {
+                        tempInt += masterItemListClass.list[itemIndex].effectAmount;
+                    }
+                }
+                playerList[playerIndex].movementBonus = tempInt;
+                break;
+            case Stat.Attack:
+                tempInt = playerList[playerIndex].attackPoints;
+                foreach (int itemIndex in playerList[playerIndex].itemIndices)
+                {
+                    if (masterItemListClass.list[itemIndex].itemEffect == (int)ItemEffect.Attack)
+                    {
+                        tempInt += masterItemListClass.list[itemIndex].effectAmount;
+                    }
+                }
+                playerList[playerIndex].attackBonus = tempInt;
+                break;
+            case Stat.Defense:
+                tempInt = playerList[playerIndex].defensePoints / 2;
+                foreach (int itemIndex in playerList[playerIndex].itemIndices)
+                {
+                    if (masterItemListClass.list[itemIndex].itemEffect == (int)ItemEffect.Defense)
+                    {
+                        tempInt += masterItemListClass.list[itemIndex].effectAmount;
+                    }
+                }
+                playerList[playerIndex].defenseBonus = tempInt;
+                break;                
+            case Stat.Health:
+                tempInt = 6;
+                tempInt += playerList[playerIndex].level;
+                tempInt += playerList[playerIndex].hpPoints * 3;                
+                playerList[playerIndex].maxHP = tempInt;
+                playerList[playerIndex].tempMaxHP = playerList[playerIndex].maxHP;
+                playerList[playerIndex].currentHP = playerList[playerIndex].maxHP;
+                break;
+        }
+    } 
 
 
 }

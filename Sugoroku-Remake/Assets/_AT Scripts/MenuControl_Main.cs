@@ -26,6 +26,7 @@ public class MenuControl_Main : MonoBehaviour
     public GameObject inviteFriendPanel;
     public GameObject selectedCharacterPanel;
     public GameObject levelUpPanel;
+    public GameObject pointPlacementPanel;
     public GameObject cannotLevelUpPanel;
     public GameObject restoreHPPanel;
     public GameObject removePlayerPanel;
@@ -41,6 +42,7 @@ public class MenuControl_Main : MonoBehaviour
     private GameObject tempObject;
     private float tempFloat = 0f;
     private int tempInt = 0;
+    private bool tempBool = false;
     
 
 	// Use this for initialization
@@ -221,6 +223,150 @@ public class MenuControl_Main : MonoBehaviour
     }
 
 
+    public void InitializePointsPlacementPanel()
+    {
+        /*tempInt = 0;
+        tempInt += dataScript.playerList[activePlayer].movementPoints - dataScript.savedCharacterListClass.list[dataScript.playerList[activePlayer].savedCharacterID].movementPoints;
+        tempInt += dataScript.playerList[activePlayer].attackPoints - dataScript.savedCharacterListClass.list[dataScript.playerList[activePlayer].savedCharacterID].attackPoints;
+        tempInt += dataScript.playerList[activePlayer].defensePoints - dataScript.savedCharacterListClass.list[dataScript.playerList[activePlayer].savedCharacterID].defensePoints;
+        tempInt += dataScript.playerList[activePlayer].hpPoints - dataScript.savedCharacterListClass.list[dataScript.playerList[activePlayer].savedCharacterID].hpPoints;
+        dataScript.playerList[activePlayer].pointsAvailable += tempInt;*/
+
+        pointPlacementPanel.transform.FindChild("Slider").GetComponent<Slider>().value = dataScript.playerList[activePlayer].pointsAvailable;
+        pointPlacementPanel.transform.FindChild("Points").GetComponent<Text>().text = dataScript.playerList[activePlayer].pointsAvailable.ToString();
+
+        tempObject = pointPlacementPanel.transform.FindChild("Movement Stat").gameObject;
+        tempObject.transform.FindChild("Slider").GetComponent<Slider>().value = dataScript.playerList[activePlayer].movementPoints;
+        tempObject.transform.FindChild("Points").GetComponent<Text>().text = dataScript.playerList[activePlayer].movementPoints.ToString();
+        tempObject.transform.FindChild("Bonus").GetComponent<Text>().text = "+" + dataScript.playerList[activePlayer].movementBonus;
+
+        tempObject = pointPlacementPanel.transform.FindChild("Attack Stat").gameObject;
+        tempObject.transform.FindChild("Slider").GetComponent<Slider>().value = dataScript.playerList[activePlayer].attackPoints;
+        tempObject.transform.FindChild("Points").GetComponent<Text>().text = dataScript.playerList[activePlayer].attackPoints.ToString();
+        tempObject.transform.FindChild("Bonus").GetComponent<Text>().text = dataScript.playerList[activePlayer].attackBonus.ToString();
+
+        tempObject = pointPlacementPanel.transform.FindChild("Defense Stat").gameObject;
+        tempObject.transform.FindChild("Slider").GetComponent<Slider>().value = dataScript.playerList[activePlayer].defensePoints;
+        tempObject.transform.FindChild("Points").GetComponent<Text>().text = dataScript.playerList[activePlayer].defensePoints.ToString();
+        tempObject.transform.FindChild("Bonus").GetComponent<Text>().text = dataScript.playerList[activePlayer].defenseBonus.ToString();
+
+        tempObject = pointPlacementPanel.transform.FindChild("Health Stat").gameObject;
+        tempObject.transform.FindChild("Slider").GetComponent<Slider>().value = dataScript.playerList[activePlayer].hpPoints;
+        tempObject.transform.FindChild("Points").GetComponent<Text>().text = dataScript.playerList[activePlayer].hpPoints.ToString();
+        tempObject.transform.FindChild("Bonus").GetComponent<Text>().text = dataScript.playerList[activePlayer].maxHP.ToString();
+
+        tempObject = null;
+    }
+
+
+    public void AddPoint(string stat)
+    {
+        if (dataScript.playerList[activePlayer].pointsAvailable > 0)
+        {
+            dataScript.playerList[activePlayer].pointsAvailable--;
+            pointPlacementPanel.transform.FindChild("Slider").GetComponent<Slider>().value = dataScript.playerList[activePlayer].pointsAvailable;
+            pointPlacementPanel.transform.FindChild("Points").GetComponent<Text>().text = dataScript.playerList[activePlayer].pointsAvailable.ToString();
+
+            tempObject = pointPlacementPanel.transform.FindChild(stat + " Stat").gameObject;
+            switch(stat)
+            {
+                case "Movement":
+                    dataScript.playerList[activePlayer].movementPoints++;
+                    dataScript.UpdateStatBonus(activePlayer, Stat.Movement);
+                    tempObject.transform.FindChild("Slider").GetComponent<Slider>().value = dataScript.playerList[activePlayer].movementPoints;
+                    tempObject.transform.FindChild("Points").GetComponent<Text>().text = dataScript.playerList[activePlayer].movementPoints.ToString();
+                    tempObject.transform.FindChild("Bonus").GetComponent<Text>().text = "+" + dataScript.playerList[activePlayer].movementBonus;
+                    break;
+                case "Attack":
+                    dataScript.playerList[activePlayer].attackPoints++;
+                    dataScript.UpdateStatBonus(activePlayer, Stat.Attack);
+                    tempObject.transform.FindChild("Slider").GetComponent<Slider>().value = dataScript.playerList[activePlayer].attackPoints;
+                    tempObject.transform.FindChild("Points").GetComponent<Text>().text = dataScript.playerList[activePlayer].attackPoints.ToString();
+                    tempObject.transform.FindChild("Bonus").GetComponent<Text>().text = dataScript.playerList[activePlayer].attackBonus.ToString();
+                    break;
+                case "Defense":
+                    dataScript.playerList[activePlayer].defensePoints++;
+                    dataScript.UpdateStatBonus(activePlayer, Stat.Defense);
+                    tempObject.transform.FindChild("Slider").GetComponent<Slider>().value = dataScript.playerList[activePlayer].defensePoints;
+                    tempObject.transform.FindChild("Points").GetComponent<Text>().text = dataScript.playerList[activePlayer].defensePoints.ToString();
+                    tempObject.transform.FindChild("Bonus").GetComponent<Text>().text = dataScript.playerList[activePlayer].defenseBonus.ToString();
+                    break;
+                case "Health":
+                    dataScript.playerList[activePlayer].hpPoints++;
+                    dataScript.UpdateStatBonus(activePlayer, Stat.Health);
+                    tempObject.transform.FindChild("Slider").GetComponent<Slider>().value = dataScript.playerList[activePlayer].hpPoints;
+                    tempObject.transform.FindChild("Points").GetComponent<Text>().text = dataScript.playerList[activePlayer].hpPoints.ToString();
+                    tempObject.transform.FindChild("Bonus").GetComponent<Text>().text = dataScript.playerList[activePlayer].maxHP.ToString();
+                    break;
+            }
+            tempObject = null;
+        }
+    }
+
+
+    public void SubtractPoint(string stat)
+    {
+        tempBool = false;
+        tempObject = pointPlacementPanel.transform.FindChild(stat + " Stat").gameObject;
+        switch (stat)
+        {
+            case "Movement":
+                if (dataScript.playerList[activePlayer].movementPoints > dataScript.savedCharacterListClass.list[dataScript.playerList[activePlayer].savedCharacterID].movementPoints)
+                {
+                    dataScript.playerList[activePlayer].movementPoints--;
+                    dataScript.UpdateStatBonus(activePlayer, Stat.Movement);
+                    tempObject.transform.FindChild("Slider").GetComponent<Slider>().value = dataScript.playerList[activePlayer].movementPoints;
+                    tempObject.transform.FindChild("Points").GetComponent<Text>().text = dataScript.playerList[activePlayer].movementPoints.ToString();
+                    tempObject.transform.FindChild("Bonus").GetComponent<Text>().text = "+" + dataScript.playerList[activePlayer].movementBonus;
+                    tempBool = true;
+                }
+                break;
+            case "Attack":
+                if (dataScript.playerList[activePlayer].attackPoints > dataScript.savedCharacterListClass.list[dataScript.playerList[activePlayer].savedCharacterID].attackPoints)
+                {
+                    dataScript.playerList[activePlayer].attackPoints--;
+                    dataScript.UpdateStatBonus(activePlayer, Stat.Attack);
+                    tempObject.transform.FindChild("Slider").GetComponent<Slider>().value = dataScript.playerList[activePlayer].attackPoints;
+                    tempObject.transform.FindChild("Points").GetComponent<Text>().text = dataScript.playerList[activePlayer].attackPoints.ToString();
+                    tempObject.transform.FindChild("Bonus").GetComponent<Text>().text = dataScript.playerList[activePlayer].attackBonus.ToString();
+                    tempBool = true;
+                }
+                break;
+            case "Defense":
+                if (dataScript.playerList[activePlayer].defensePoints > dataScript.savedCharacterListClass.list[dataScript.playerList[activePlayer].savedCharacterID].defensePoints)
+                {
+                    dataScript.playerList[activePlayer].defensePoints--;
+                    dataScript.UpdateStatBonus(activePlayer, Stat.Defense);
+                    tempObject.transform.FindChild("Slider").GetComponent<Slider>().value = dataScript.playerList[activePlayer].defensePoints;
+                    tempObject.transform.FindChild("Points").GetComponent<Text>().text = dataScript.playerList[activePlayer].defensePoints.ToString();
+                    tempObject.transform.FindChild("Bonus").GetComponent<Text>().text = dataScript.playerList[activePlayer].defenseBonus.ToString();
+                    tempBool = true;
+                }
+                break;
+            case "Health":
+                if (dataScript.playerList[activePlayer].hpPoints > dataScript.savedCharacterListClass.list[dataScript.playerList[activePlayer].savedCharacterID].hpPoints)
+                {
+                    dataScript.playerList[activePlayer].hpPoints--;
+                    dataScript.UpdateStatBonus(activePlayer, Stat.Health);
+                    tempObject.transform.FindChild("Slider").GetComponent<Slider>().value = dataScript.playerList[activePlayer].hpPoints;
+                    tempObject.transform.FindChild("Points").GetComponent<Text>().text = dataScript.playerList[activePlayer].hpPoints.ToString();
+                    tempObject.transform.FindChild("Bonus").GetComponent<Text>().text = dataScript.playerList[activePlayer].maxHP.ToString();
+                    tempBool = true;
+                }
+                break;
+        }
+
+        if (tempBool)
+        {
+            dataScript.playerList[activePlayer].pointsAvailable++;
+            pointPlacementPanel.transform.FindChild("Slider").GetComponent<Slider>().value = dataScript.playerList[activePlayer].pointsAvailable;
+            pointPlacementPanel.transform.FindChild("Points").GetComponent<Text>().text = dataScript.playerList[activePlayer].pointsAvailable.ToString();
+        }
+
+        tempObject = null;
+    }
+
+
     // Update is called once per frame
     void Update ()
     {
@@ -238,6 +384,7 @@ public class MenuControl_Main : MonoBehaviour
         inviteFriendPanel.SetActive(false);
         selectedCharacterPanel.SetActive(false);
         levelUpPanel.SetActive(false);
+        pointPlacementPanel.SetActive(false);
         cannotLevelUpPanel.SetActive(false);
         restoreHPPanel.SetActive(false);
         removePlayerPanel.SetActive(false);
@@ -356,8 +503,28 @@ public class MenuControl_Main : MonoBehaviour
         itemOptionsPanel.SetActive(false);
         sellItemPanel.SetActive(false);
         identifyItemPanel.SetActive(false);
-        levelUpPanel.SetActive(true);
-        // TODO set up credit check to determine which level up panel to show
+        
+        tempInt = 0;
+        tempInt = dataScript.playerList[activePlayer].level;
+        tempInt = 500 * ((((tempInt - 1) * tempInt) / 2) + 2);
+
+        if(dataScript.savedCharacterListClass.list[dataScript.playerList[activePlayer].savedCharacterID].pointsAvailable > 0)
+        {
+            dataScript.LoadSavedCharacters();
+            InitializePlayerBoxes();
+            InitializePointsPlacementPanel();
+            pointPlacementPanel.SetActive(true);
+        }
+        else if(dataScript.playerList[activePlayer].credits < tempInt)
+        {
+            cannotLevelUpPanel.transform.FindChild("Text").GetComponent<Text>().text = "You need " + tempInt + " Cr to Level Up!";
+            cannotLevelUpPanel.SetActive(true);
+        }
+        else
+        {
+            levelUpPanel.transform.FindChild("Text").GetComponent<Text>().text = "Spend " + tempInt + " Cr to Level Up?";
+            levelUpPanel.SetActive(true);
+        }        
     }
 
 
@@ -365,6 +532,32 @@ public class MenuControl_Main : MonoBehaviour
     {
         Debug.Log("LevelUpConfirmed(" + activePlayer + ")");
         levelUpPanel.SetActive(false);
+
+        tempInt = 0;
+        tempInt = dataScript.playerList[activePlayer].level;
+        tempInt = 500 * ((((tempInt - 1) * tempInt) / 2) + 2);
+        dataScript.playerList[activePlayer].credits -= tempInt;
+        dataScript.playerList[activePlayer].level++;
+        dataScript.playerList[activePlayer].pointsAvailable++;
+        dataScript.UpdateStatBonus(activePlayer, Stat.Health);  // Adds 1 to player total health, because the level was increased since last update
+        dataScript.playerList[activePlayer].tempMaxHP = dataScript.playerList[activePlayer].maxHP;
+        dataScript.playerList[activePlayer].currentHP = dataScript.playerList[activePlayer].maxHP;
+
+        dataScript.PostPlayerToSavedCharacter(activePlayer);
+        InitializePlayerBoxes();
+        InitializePointsPlacementPanel();
+        pointPlacementPanel.SetActive(true);
+    }
+
+
+    public void PointPlacementConfirmed()
+    {
+
+
+
+        dataScript.PostPlayerToSavedCharacter(activePlayer);
+        InitializePlayerBoxes();
+        pointPlacementPanel.SetActive(false);
     }
 
 
@@ -393,6 +586,12 @@ public class MenuControl_Main : MonoBehaviour
     public void RemovePlayerConfirmed()
     {
         Debug.Log("RemovePlayerConfirmed(" + activePlayer + ")");
+        dataScript.playerList[activePlayer].inParty = false;
+        dataScript.savedCharacterListClass.list[dataScript.playerList[activePlayer].savedCharacterID].inParty = false;
+        dataScript.SaveCharacters();
+        dataScript.LoadSavedCharacters();
+        CheckStartMissionStatus();
+        InitializePlayerBoxes();
         activePlayer = -1;
         removePlayerPanel.SetActive(false);
         selectedCharacterPanel.SetActive(false);
@@ -417,8 +616,12 @@ public class MenuControl_Main : MonoBehaviour
     private void SavedCharacterSelectConfirmed()
     {
         Debug.Log("SavedCharacterSelectConfirmed(" + activeCharacter + ")");
-        addPlayerPanel.SetActive(false);
+        dataScript.savedCharacterListClass.list[activeCharacter].inParty = true;
+        dataScript.SaveCharacters();
+        dataScript.LoadSavedCharacters();
         CheckStartMissionStatus();
+        InitializePlayerBoxes();
+        addPlayerPanel.SetActive(false);
     }
 
 
@@ -460,6 +663,10 @@ public class MenuControl_Main : MonoBehaviour
         identifyItemPanel.SetActive(false);
         itemOptionsPanel.SetActive(false);
     }
+
+
+
+
 
 
 }

@@ -3,6 +3,7 @@
 [Serializable]
 public class Character
 {
+    public int savedCharacterID;
     public string name;
     public int maxHP;
     public int tempMaxHP;
@@ -17,8 +18,13 @@ public class Character
     public int attackBonus;
     public int defenseBonus;
     public int credits;
-    public int[] itemIdexes;
+    public int[] itemIndices;
     public bool inParty;
+
+    public object Clone()
+    {
+        return this.MemberwiseClone();
+    }
 
     public Character()
     {
@@ -35,7 +41,7 @@ public class Character
         attackBonus = 1;
         defenseBonus = 0;
         credits = 0;
-        itemIdexes = new int[6];
+        itemIndices = new int[6];
         inParty = true; 
     }
 
@@ -44,6 +50,7 @@ public class Character
         switch(mockDataIndex)
         {
             case 0:
+                savedCharacterID = 0;
                 name = "Mock_0";
                 maxHP = 19;
                 tempMaxHP = 19;
@@ -58,10 +65,11 @@ public class Character
                 attackBonus = 6;
                 defenseBonus = 1;
                 credits = 0;
-                itemIdexes = new int[6];
+                itemIndices = new int[6];
                 inParty = true;
                 break;
             case 1:
+                savedCharacterID = 1;
                 name = "Mock_1";
                 maxHP = 10;
                 tempMaxHP = 10;
@@ -76,10 +84,11 @@ public class Character
                 attackBonus = 1;
                 defenseBonus = 0;
                 credits = 236;
-                itemIdexes = new int[6] {3, 0, 0, 0, 0, 0};
+                itemIndices = new int[6] {3, 0, 0, 0, 0, 0};
                 inParty = false;
                 break;
             case 2:
+                savedCharacterID = 2;
                 name = "Mock_2";
                 maxHP = 13;
                 tempMaxHP = 10;
@@ -94,7 +103,7 @@ public class Character
                 attackBonus = 2;
                 defenseBonus = 6;
                 credits = 2734;
-                itemIdexes = new int[6] { 1, 2, 2, 3, 0, 0 };
+                itemIndices = new int[6] { 1, 2, 2, 3, 0, 0 };
                 inParty = true;
                 break;
         }
