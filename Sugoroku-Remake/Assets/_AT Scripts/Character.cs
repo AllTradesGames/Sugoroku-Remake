@@ -19,6 +19,7 @@ public class Character
     public int defenseBonus;
     public int credits;
     public int[] itemIndices;
+    public bool[] identifiedItems;
     public bool inParty;
 
     public object Clone()
@@ -42,6 +43,7 @@ public class Character
         defenseBonus = 0;
         credits = 0;
         itemIndices = new int[6];
+        identifiedItems = new bool[DataControl.NUM_ITEM_SECTIONS * DataControl.ITEMS_PER_SECTION];
         inParty = true; 
     }
 
@@ -66,6 +68,7 @@ public class Character
                 defenseBonus = 1;
                 credits = 0;
                 itemIndices = new int[6];
+                identifiedItems = new bool[DataControl.NUM_ITEM_SECTIONS * DataControl.ITEMS_PER_SECTION];
                 inParty = true;
                 break;
             case 1:
@@ -85,6 +88,7 @@ public class Character
                 defenseBonus = 0;
                 credits = 236;
                 itemIndices = new int[6] {3, 0, 0, 0, 0, 0};
+                identifiedItems = new bool[DataControl.NUM_ITEM_SECTIONS * DataControl.ITEMS_PER_SECTION];
                 inParty = false;
                 break;
             case 2:
@@ -100,10 +104,12 @@ public class Character
                 attackPoints = 1;
                 defensePoints = 9;
                 movementBonus = 1;
-                attackBonus = 2;
+                attackBonus = 1;
                 defenseBonus = 6;
                 credits = 2734;
                 itemIndices = new int[6] { 1, 2, 2, 3, 0, 0 };
+                identifiedItems = new bool[DataControl.NUM_ITEM_SECTIONS * DataControl.ITEMS_PER_SECTION];
+                identifiedItems[2] = true;
                 inParty = true;
                 break;
         }

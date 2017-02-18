@@ -48,6 +48,7 @@ public class DataControl : MonoBehaviour
 {
     public const int NUM_ITEM_SECTIONS = 3;
     public const int ITEMS_PER_SECTION = 20;
+    public const int NUM_ITEMS_PER_CHARACTER = 6;
 
     public string savedCharacterFileName = "SavedCharacters.dat";
     public string itemFilePath = "Assets/Resources/ItemData/";
@@ -218,7 +219,7 @@ public class DataControl : MonoBehaviour
                 tempInt = playerList[playerIndex].movementPoints / 3;
                 foreach(int itemIndex in playerList[playerIndex].itemIndices)
                 {
-                    if(masterItemListClass.list[itemIndex].itemEffect == (int)ItemEffect.Movement)
+                    if((playerList[playerIndex].identifiedItems[itemIndex]) && masterItemListClass.list[itemIndex].itemEffect == (int)ItemEffect.Movement)
                     {
                         tempInt += masterItemListClass.list[itemIndex].effectAmount;
                     }
@@ -229,7 +230,7 @@ public class DataControl : MonoBehaviour
                 tempInt = playerList[playerIndex].attackPoints;
                 foreach (int itemIndex in playerList[playerIndex].itemIndices)
                 {
-                    if (masterItemListClass.list[itemIndex].itemEffect == (int)ItemEffect.Attack)
+                    if ((playerList[playerIndex].identifiedItems[itemIndex]) && masterItemListClass.list[itemIndex].itemEffect == (int)ItemEffect.Attack)
                     {
                         tempInt += masterItemListClass.list[itemIndex].effectAmount;
                     }
@@ -240,7 +241,7 @@ public class DataControl : MonoBehaviour
                 tempInt = playerList[playerIndex].defensePoints / 2;
                 foreach (int itemIndex in playerList[playerIndex].itemIndices)
                 {
-                    if (masterItemListClass.list[itemIndex].itemEffect == (int)ItemEffect.Defense)
+                    if ((playerList[playerIndex].identifiedItems[itemIndex]) && masterItemListClass.list[itemIndex].itemEffect == (int)ItemEffect.Defense)
                     {
                         tempInt += masterItemListClass.list[itemIndex].effectAmount;
                     }
@@ -252,11 +253,58 @@ public class DataControl : MonoBehaviour
                 tempInt += playerList[playerIndex].level;
                 tempInt += playerList[playerIndex].hpPoints * 3;                
                 playerList[playerIndex].maxHP = tempInt;
-                playerList[playerIndex].tempMaxHP = playerList[playerIndex].maxHP;
-                playerList[playerIndex].currentHP = playerList[playerIndex].maxHP;
+                if (playerList[playerIndex].tempMaxHP > playerList[playerIndex].maxHP)
+                {
+                    playerList[playerIndex].tempMaxHP = playerList[playerIndex].maxHP;
+                    playerList[playerIndex].currentHP = playerList[playerIndex].tempMaxHP;
+                }
                 break;
         }
-    } 
+    }
+
+
+    public void UpdateStatBonus(int playerIndex)
+    {
+        tempInt = playerList[playerIndex].movementPoints / 3;
+        foreach (int itemIndex in playerList[playerIndex].itemIndices)
+        {
+            if ((playerList[playerIndex].identifiedItems[itemIndex]) && masterItemListClass.list[itemIndex].itemEffect == (int)ItemEffect.Movement)
+            {
+                tempInt += masterItemListClass.list[itemIndex].effectAmount;
+            }
+        }
+        playerList[playerIndex].movementBonus = tempInt;
+
+        tempInt = playerList[playerIndex].attackPoints;
+        foreach (int itemIndex in playerList[playerIndex].itemIndices)
+        {
+            if ((playerList[playerIndex].identifiedItems[itemIndex]) && masterItemListClass.list[itemIndex].itemEffect == (int)ItemEffect.Attack)
+            {
+                tempInt += masterItemListClass.list[itemIndex].effectAmount;
+            }
+        }
+        playerList[playerIndex].attackBonus = tempInt;
+
+        tempInt = playerList[playerIndex].defensePoints / 2;
+        foreach (int itemIndex in playerList[playerIndex].itemIndices)
+        {
+            if ((playerList[playerIndex].identifiedItems[itemIndex]) && masterItemListClass.list[itemIndex].itemEffect == (int)ItemEffect.Defense)
+            {
+                tempInt += masterItemListClass.list[itemIndex].effectAmount;
+            }
+        }
+        playerList[playerIndex].defenseBonus = tempInt;
+
+        tempInt = 6;
+        tempInt += playerList[playerIndex].level;
+        tempInt += playerList[playerIndex].hpPoints * 3;
+        playerList[playerIndex].maxHP = tempInt;
+        if(playerList[playerIndex].tempMaxHP > playerList[playerIndex].maxHP)
+        {
+            playerList[playerIndex].tempMaxHP = playerList[playerIndex].maxHP;
+            playerList[playerIndex].currentHP = playerList[playerIndex].tempMaxHP;
+        }
+    }
 
 
 }

@@ -5,9 +5,11 @@ using UnityEngine.UI;
 
 public class MenuControl_Main : MonoBehaviour
 {
+    public int identifyFeePerLevel = 50;
+
     public DataControl dataScript;
 
-    public string pathToItemImages = "/Images/Items/";
+    public string pathToItemImages = "Images/Items/";
 
     public GameObject startMissionButton;
 
@@ -34,6 +36,7 @@ public class MenuControl_Main : MonoBehaviour
     public GameObject itemOptionsPanel;
     public GameObject sellItemPanel;
     public GameObject identifyItemPanel;
+    public GameObject cannotIdentifyPanel;
 
     private bool isDeleteActive = false;
     private int activePlayer = -1;
@@ -166,6 +169,21 @@ public class MenuControl_Main : MonoBehaviour
             tempObject.transform.FindChild("Health/HP Text").GetComponent<Text>().text = character.currentHP + "/" + character.tempMaxHP;
             tempObject.transform.FindChild("Health/Red Slider").GetComponent<Slider>().value = ((float)character.tempMaxHP) / ((float)character.maxHP);
             tempObject.transform.FindChild("Health/Red Slider/Green Slider").GetComponent<Slider>().value = ((float)character.currentHP) / ((float)character.maxHP);
+
+            tempObject = tempObject.transform.FindChild("Item Panel/Images").gameObject;
+            for (int ii=0; ii < DataControl.NUM_ITEMS_PER_CHARACTER; ii++)
+            {
+                if ((character.itemIndices.Length > ii) && (character.itemIndices[ii] != 0))
+                {
+                    tempObject.transform.GetChild(ii).GetComponent<Image>().sprite = Resources.Load<Sprite>(pathToItemImages + dataScript.masterItemListClass.list[character.itemIndices[ii]].imageName);
+                }
+                else
+                {
+                    tempObject.transform.GetChild(ii).GetComponent<Image>().sprite = null;
+                }
+            }
+            tempObject = tempObject.transform.parent.parent.gameObject;
+
             switch (tempInt)
             {
                 case 0:
@@ -257,6 +275,119 @@ public class MenuControl_Main : MonoBehaviour
         tempObject.transform.FindChild("Points").GetComponent<Text>().text = dataScript.playerList[activePlayer].hpPoints.ToString();
         tempObject.transform.FindChild("Bonus").GetComponent<Text>().text = dataScript.playerList[activePlayer].maxHP.ToString();
 
+        tempObject = null;
+    }
+
+
+    public void InitializeSelectedPlayerItems()
+    {
+        tempObject = selectedCharacterPanel.transform.FindChild("Items Panel/Item Buttons").gameObject;
+        for (int ii = 0; ii < DataControl.NUM_ITEMS_PER_CHARACTER; ii++)
+        {
+            if ((dataScript.playerList[activePlayer].itemIndices.Length > ii) && (dataScript.playerList[activePlayer].itemIndices[ii] != 0))
+            {
+                tempObject.transform.GetChild(ii).FindChild("Image").GetComponent<Image>().sprite = Resources.Load<Sprite>(pathToItemImages + dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].imageName);
+                if (!dataScript.playerList[activePlayer].identifiedItems[dataScript.playerList[activePlayer].itemIndices[ii]])
+                {
+                    tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = "???";
+                }
+                else
+                {
+                    switch (dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].itemEffect)
+                    {
+                        case (int)ItemEffect.None:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\n";
+                            break;
+                        case (int)ItemEffect.Attack:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nAtk +" + dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].effectAmount;
+                            break;
+                        case (int)ItemEffect.Defense:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nDef +" + dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].effectAmount;
+                            break;
+                        case (int)ItemEffect.Movement:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nMv +" + dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].effectAmount;
+                            break;
+                        case (int)ItemEffect.Evade:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nEv Trap +" + dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].effectAmount + "%";
+                            break;
+                        case (int)ItemEffect.Escape:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nEscape +" + dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].effectAmount;
+                            break;
+                        case (int)ItemEffect.CritAttack:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nCrit Attack x2";
+                            break;
+                        case (int)ItemEffect.CritDefend:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nCrit Defense x2";
+                            break;
+                        case (int)ItemEffect.CritEmpty:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nCrit Empty Hand";
+                            break;
+                        case (int)ItemEffect.CritStun:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nCrit Stun";
+                            break;
+                        case (int)ItemEffect.CritLegDmg:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nCrit Leg Dmg";
+                            break;
+                        case (int)ItemEffect.Voodoo:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nVoodoo";
+                            break;
+                        case (int)ItemEffect.MoveHeal:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nMove Heal +" + dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].effectAmount;
+                            break;
+                        case (int)ItemEffect.RestUp:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nRest Heal +" + dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].effectAmount;
+                            break;
+                        case (int)ItemEffect.Crutch:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nLeg Dmg Mv +" + dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].effectAmount;
+                            break;
+                        case (int)ItemEffect.NoPanic:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nNo Panic";
+                            break;
+                        case (int)ItemEffect.NoStun:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nNo Stun";
+                            break;
+                        case (int)ItemEffect.NoLegDmg:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nNo Leg Dmg";
+                            break;
+                        case (int)ItemEffect.NoEmpty:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nNo Empty Hand";
+                            break;
+                        case (int)ItemEffect.RollCap5:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nRoll Max is 4" + dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].effectAmount;
+                            break;
+                        case (int)ItemEffect.CausePanic:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nRandom Panic";
+                            break;
+                        case (int)ItemEffect.CauseEmpty:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nRandom Empty Hand";
+                            break;
+                        case (int)ItemEffect.CauseStun:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nRandom Stun";
+                            break;
+                        case (int)ItemEffect.CauseLegDmg:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nRandom Leg Dmg";
+                            break;
+                        case (int)ItemEffect.NPC0NoCounter:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nGON No Counter";
+                            break;
+                        case (int)ItemEffect.NPC1NoCounter:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nCAL No Counter";
+                            break;
+                        case (int)ItemEffect.NPC2NoCounter:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nBRO No Counter";
+                            break;
+                        case (int)ItemEffect.NPC3NoCounter:
+                            tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].name + "\nRAD No Counter";
+                            break;
+                    }
+                }
+                tempObject.transform.GetChild(ii).gameObject.SetActive(true);
+            }
+            else
+            {
+                tempObject.transform.GetChild(ii).gameObject.SetActive(false);
+            }
+        }
         tempObject = null;
     }
 
@@ -394,6 +525,7 @@ public class MenuControl_Main : MonoBehaviour
         itemOptionsPanel.SetActive(false);
         sellItemPanel.SetActive(false);
         identifyItemPanel.SetActive(false);
+        cannotIdentifyPanel.SetActive(false);
     }
 
 
@@ -494,6 +626,11 @@ public class MenuControl_Main : MonoBehaviour
     {
         Debug.Log("PlayerClicked(" + playerIndex + ")");
         activePlayer = playerIndex;
+
+        // TODO Load character model here
+
+        InitializeSelectedPlayerItems();
+
         DeactivateAllPanels();
         selectedCharacterPanel.SetActive(true);
     }
@@ -555,8 +692,8 @@ public class MenuControl_Main : MonoBehaviour
 
     public void PointPlacementConfirmed()
     {
-
-
+        dataScript.playerList[activePlayer].tempMaxHP = dataScript.playerList[activePlayer].maxHP;
+        dataScript.playerList[activePlayer].currentHP = dataScript.playerList[activePlayer].maxHP;
 
         dataScript.PostPlayerToSavedCharacter(activePlayer);
         InitializePlayerBoxes();
@@ -680,6 +817,14 @@ public class MenuControl_Main : MonoBehaviour
     {
         activeItem = itemIndex;
         Debug.Log("ItemClicked(" + itemIndex + ")");
+        if(dataScript.playerList[activePlayer].identifiedItems[dataScript.playerList[activePlayer].itemIndices[itemIndex]])
+        {
+            itemOptionsPanel.transform.FindChild("Identify Item Button").gameObject.SetActive(false);
+        }
+        else
+        {
+            itemOptionsPanel.transform.FindChild("Identify Item Button").gameObject.SetActive(true);
+        }
         itemOptionsPanel.SetActive(true);
     }
 
@@ -687,6 +832,9 @@ public class MenuControl_Main : MonoBehaviour
     public void SellItemClicked()
     {
         Debug.Log("SellItemClicked(" + activeItem + ")");
+
+        sellItemPanel.transform.FindChild("Text").GetComponent<Text>().text = "Sell " + dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[activeItem]].name + " for " + (dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[activeItem]].basePrice + (dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[activeItem]].pricePerLevel * dataScript.playerList[activePlayer].level)) + " Cr?";
+
         sellItemPanel.SetActive(true);
     }
 
@@ -694,25 +842,51 @@ public class MenuControl_Main : MonoBehaviour
     public void SellItemConfirmed()
     {
         Debug.Log("SellItemConfirmed(" + activeItem + ")");
+
+        dataScript.playerList[activePlayer].credits += dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[activeItem]].basePrice + (dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[activeItem]].pricePerLevel * dataScript.playerList[activePlayer].level);
+        dataScript.playerList[activePlayer].itemIndices[activeItem] = 0;
+        dataScript.UpdateStatBonus(activePlayer);
+        dataScript.PostPlayerToSavedCharacter(activePlayer);
+
         activeItem = -1;
         sellItemPanel.SetActive(false);
         itemOptionsPanel.SetActive(false);
+        InitializePlayerBoxes();
+        InitializeSelectedPlayerItems();
     }
 
 
     public void IdentifyItemClicked()
     {
         Debug.Log("IdentifyItemClicked(" + activeItem + ")");
-        identifyItemPanel.SetActive(true);
+
+        if (dataScript.playerList[activePlayer].credits < (identifyFeePerLevel * dataScript.playerList[activePlayer].level))
+        {
+            cannotIdentifyPanel.transform.FindChild("Text").GetComponent<Text>().text = "You need " + (identifyFeePerLevel * dataScript.playerList[activePlayer].level) + " Cr to Identify this Item!";
+            cannotIdentifyPanel.SetActive(true);
+        }
+        else
+        {
+            identifyItemPanel.transform.FindChild("Text").GetComponent<Text>().text = "Identify this Item for " + (identifyFeePerLevel * dataScript.playerList[activePlayer].level) + " Cr?";
+            identifyItemPanel.SetActive(true);
+        }        
     }
 
 
     public void IdentifyItemConfirmed()
     {
         Debug.Log("IdentifyItemConfirmed(" + activeItem + ")");
+
+        dataScript.playerList[activePlayer].credits -= identifyFeePerLevel * dataScript.playerList[activePlayer].level;
+        dataScript.playerList[activePlayer].identifiedItems[dataScript.playerList[activePlayer].itemIndices[activeItem]] = true;
+        dataScript.UpdateStatBonus(activePlayer);
+        dataScript.PostPlayerToSavedCharacter(activePlayer);
+
         activeItem = -1;
         identifyItemPanel.SetActive(false);
         itemOptionsPanel.SetActive(false);
+        InitializePlayerBoxes();
+        InitializeSelectedPlayerItems();
     }
 
 
