@@ -627,6 +627,10 @@ public class MenuControl_Main : MonoBehaviour
         isDeleteActive = false;
 
         dataScript.savedCharacterListClass.list.RemoveAt(activeCharacter);
+        for (int ii=0; ii < dataScript.savedCharacterListClass.list.Count; ii++)
+        {
+            dataScript.savedCharacterListClass.list[ii].savedCharacterID = ii;
+        }
         dataScript.SaveCharacters();
         dataScript.LoadSavedCharacters();
         CheckStartMissionStatus();
