@@ -17,6 +17,8 @@ public class MenuControl_Main : MonoBehaviour
     public GameObject playerBoxPrefab;
     public GameObject addPlayerButton;
 
+    public InputField newCharacterNameInput;
+
     public GameObject savedCharacterPlaceholder;
     public GameObject savedCharacterPrefab;
 
@@ -39,6 +41,7 @@ public class MenuControl_Main : MonoBehaviour
     public GameObject cannotIdentifyPanel;
 
     private bool isDeleteActive = false;
+    private bool isCreatingNewCharacter = false;
     private int activePlayer = -1;
     private int activeCharacter = -1;
     private int activeItem = -1;
@@ -145,13 +148,15 @@ public class MenuControl_Main : MonoBehaviour
 
         tempInt = 0;
         tempObject = null;
-        tempFloat = savedCharacterPlaceholder.transform.position.y;
+        tempFloat = savedCharacterPlaceholder.transform.localPosition.y;
+        savedCharacterPlaceholder.transform.parent.GetComponent<RectTransform>().sizeDelta = new Vector2(savedCharacterPlaceholder.transform.parent.GetComponent<RectTransform>().sizeDelta.x, 151.3f + 50f);
         foreach (Character character in dataScript.savedCharacterListClass.list)
         {
             if (tempObject)
             {
                 // TODO                                        vvvv   Make that not hardcoded.
-                tempFloat = tempObject.transform.position.y - 151.3f;
+                tempFloat = tempObject.transform.localPosition.y - 151.3f;
+                savedCharacterPlaceholder.transform.parent.GetComponent<RectTransform>().sizeDelta = new Vector2(savedCharacterPlaceholder.transform.parent.GetComponent<RectTransform>().sizeDelta.x, savedCharacterPlaceholder.transform.parent.GetComponent<RectTransform>().sizeDelta.y + 151.3f);
             }
             tempObject = Instantiate(savedCharacterPlaceholder, savedCharacterPlaceholder.transform.parent) as GameObject;
             if(tempObject.transform.parent.gameObject.activeInHierarchy)
@@ -159,7 +164,7 @@ public class MenuControl_Main : MonoBehaviour
                 tempObject.SetActive(true);
             }
             tempObject.transform.SetSiblingIndex(tempInt);
-            tempObject.transform.position = new Vector3(savedCharacterPlaceholder.transform.position.x, tempFloat, savedCharacterPlaceholder.transform.position.z);
+            tempObject.transform.localPosition = new Vector3(savedCharacterPlaceholder.transform.localPosition.x, tempFloat, savedCharacterPlaceholder.transform.localPosition.z);
             tempObject.transform.FindChild("Character Name").GetComponent<Text>().text = character.name;
             tempObject.transform.FindChild("Level Text").GetComponent<Text>().text = "Lv " + character.level;
             tempObject.transform.FindChild("Attack/Attack Text").GetComponent<Text>().text = character.attackBonus.ToString();
@@ -593,6 +598,21 @@ public class MenuControl_Main : MonoBehaviour
     }
 
 
+    public void CreateNewCharacterConfirmed()
+    {
+        dataScript.playerList.Add(new Character());
+        activePlayer = dataScript.playerList.Count - 1;
+        dataScript.playerList[activePlayer].name = newCharacterNameInput.text;
+        newCharacterNameInput.text = string.Empty;
+        dataScript.PostPlayerToSavedCharacter(activePlayer);
+        InitializePlayerBoxes();        
+        isCreatingNewCharacter = true;
+        InitializePointsPlacementPanel();
+        DeactivateAllPanels();
+        pointPlacementPanel.SetActive(true);
+    }
+
+
     public void DeleteCharacterClicked()
     {
         isDeleteActive = !isDeleteActive;
@@ -652,6 +672,7 @@ public class MenuControl_Main : MonoBehaviour
         {
             dataScript.LoadSavedCharacters();
             InitializePlayerBoxes();
+            isCreatingNewCharacter = false;
             InitializePointsPlacementPanel();
             pointPlacementPanel.SetActive(true);
         }
@@ -685,6 +706,7 @@ public class MenuControl_Main : MonoBehaviour
 
         dataScript.PostPlayerToSavedCharacter(activePlayer);
         InitializePlayerBoxes();
+        isCreatingNewCharacter = false;
         InitializePointsPlacementPanel();
         pointPlacementPanel.SetActive(true);
     }
@@ -767,6 +789,7 @@ public class MenuControl_Main : MonoBehaviour
         itemOptionsPanel.SetActive(false);
         sellItemPanel.SetActive(false);
         identifyItemPanel.SetActive(false);
+        removePlayerPanel.transform.FindChild("Text").GetComponent<Text>().text = "Remove " + dataScript.playerList[activePlayer].name + " \nFrom Your Party?";
         removePlayerPanel.SetActive(true);
     }
 
@@ -792,6 +815,7 @@ public class MenuControl_Main : MonoBehaviour
         activeCharacter = characterIndex;
         if(isDeleteActive)
         {
+            deleteCharacterPanel.transform.FindChild("Text").GetComponent<Text>().text = "Are You Sure You Want to Permanently Delete " + dataScript.savedCharacterListClass.list[activeCharacter].name + "?\n(This Cannot Be Undone)";
             deleteCharacterPanel.SetActive(true);
         }
         else

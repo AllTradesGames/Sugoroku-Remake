@@ -120,7 +120,7 @@ public class DataControl : MonoBehaviour
             // Remove players from playerList that are not in the party
             for (int ii= 0; ii < playerList.Count; ii++)
             {   
-                if (!savedCharacterListClass.list[playerList[ii].savedCharacterID].inParty)
+                if (!(savedCharacterListClass.list.Count > playerList[ii].savedCharacterID) || !savedCharacterListClass.list[playerList[ii].savedCharacterID].inParty)
                 {
                     playerList.Remove(playerList[ii]);
                 }
@@ -175,7 +175,15 @@ public class DataControl : MonoBehaviour
 
     public void PostPlayerToSavedCharacter(int playerIndex)
     {
-        savedCharacterListClass.list[playerList[playerIndex].savedCharacterID] = playerList[playerIndex];
+        if (playerList[playerIndex].savedCharacterID >= 0)
+        {
+            savedCharacterListClass.list[playerList[playerIndex].savedCharacterID] = playerList[playerIndex];
+        }
+        else
+        {
+            savedCharacterListClass.list.Add(playerList[playerIndex]);
+            savedCharacterListClass.list[savedCharacterListClass.list.Count - 1].savedCharacterID = savedCharacterListClass.list.Count - 1;
+        }
         SaveCharacters();
         LoadSavedCharacters();
     } 

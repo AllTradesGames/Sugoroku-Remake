@@ -29,6 +29,7 @@ public class Character
 
     public Character()
     {
+        savedCharacterID = -1;
         maxHP = 10;
         tempMaxHP = 10;
         currentHP = 10;
