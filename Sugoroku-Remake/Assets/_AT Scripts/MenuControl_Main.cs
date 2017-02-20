@@ -594,6 +594,7 @@ public class MenuControl_Main : MonoBehaviour
     public void CreateNewCharacterClicked()
     {
         Debug.Log("CreateNewCharacterClicked()");
+        newCharacterNameInput.text = string.Empty;
         createNewCharacterPanel.SetActive(true);
     }
 
@@ -603,7 +604,6 @@ public class MenuControl_Main : MonoBehaviour
         dataScript.playerList.Add(new Character());
         activePlayer = dataScript.playerList.Count - 1;
         dataScript.playerList[activePlayer].name = newCharacterNameInput.text;
-        newCharacterNameInput.text = string.Empty;
         dataScript.PostPlayerToSavedCharacter(activePlayer);
         InitializePlayerBoxes();        
         isCreatingNewCharacter = true;

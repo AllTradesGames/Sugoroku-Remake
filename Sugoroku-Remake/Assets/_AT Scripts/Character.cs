@@ -5,6 +5,7 @@ public class Character
 {
     public int savedCharacterID;
     public string name;
+    public string pathToModel;
     public int maxHP;
     public int tempMaxHP;
     public int currentHP;
@@ -30,6 +31,7 @@ public class Character
     public Character()
     {
         savedCharacterID = -1;
+        pathToModel = "Models/Characters/model_0";
         maxHP = 10;
         tempMaxHP = 10;
         currentHP = 10;
@@ -55,6 +57,7 @@ public class Character
             case 0:
                 savedCharacterID = 0;
                 name = "Mock_0";
+                pathToModel = "Models/Characters/model_0";
                 maxHP = 19;
                 tempMaxHP = 19;
                 currentHP = 19;
@@ -75,6 +78,7 @@ public class Character
             case 1:
                 savedCharacterID = 1;
                 name = "Mock_1";
+                pathToModel = "Models/Characters/model_1";
                 maxHP = 10;
                 tempMaxHP = 10;
                 currentHP = 10;
@@ -95,6 +99,7 @@ public class Character
             case 2:
                 savedCharacterID = 2;
                 name = "Mock_2";
+                pathToModel = "Models/Characters/model_2";
                 maxHP = 13;
                 tempMaxHP = 10;
                 currentHP = 8;
