@@ -35,6 +35,7 @@ public class GameControl : MonoBehaviour
 
     public GameObject playerBoxPlaceholder;
     public GameObject playerBoxPrefab;
+    public GameObject cardPrefab;
 
     public GameObject moveButton;
     public GameObject attackButton;
@@ -48,11 +49,12 @@ public class GameControl : MonoBehaviour
     private int tempInt = 0;
     private float tempFloat = 0f;
     private GameObject tempObject = null;
+    private GameObject currentCard = null;
 
     private void Awake()
     {
         dataScript = GameObject.FindGameObjectWithTag("DataController").GetComponent<DataControl>();
-        Random.InitState((int)(Time.time * 100));
+        Random.InitState((int)(Time.time * 100f));
     }
 
 	// Use this for initialization
@@ -102,7 +104,7 @@ public class GameControl : MonoBehaviour
         tempInt = 0;
         tempObject = null;
         tempFloat = playerBoxPlaceholder.transform.position.x;
-        foreach (Character character in dataScript.playerList)
+        for (int ii=0; ii < dataScript.playerList.Count; ii++)
         {
             if (tempObject)
             {
@@ -112,15 +114,84 @@ public class GameControl : MonoBehaviour
             tempObject = Instantiate(playerBoxPrefab, playerBoxPlaceholder.transform.parent) as GameObject;
             tempObject.transform.SetSiblingIndex(tempInt);
             tempObject.transform.position = new Vector3(tempFloat, playerBoxPlaceholder.transform.position.y, playerBoxPlaceholder.transform.position.z);
-            tempObject.transform.FindChild("Character Name").GetComponent<Text>().text = character.name;
-            tempObject.transform.FindChild("Level Text").GetComponent<Text>().text = "Lv " + character.level;
-            tempObject.transform.FindChild("Attack/Attack Text").GetComponent<Text>().text = character.attackBonus.ToString();
-            tempObject.transform.FindChild("Movement/Movement Text").GetComponent<Text>().text = character.movementBonus.ToString();
-            tempObject.transform.FindChild("Defense/Defense Text").GetComponent<Text>().text = character.defenseBonus.ToString();
-            tempObject.transform.FindChild("Credits/Credits Text").GetComponent<Text>().text = character.credits.ToString();
-            tempObject.transform.FindChild("Health/HP Text").GetComponent<Text>().text = character.currentHP + "/" + character.tempMaxHP;
-            tempObject.transform.FindChild("Health/Red Slider").GetComponent<Slider>().value = ((float)character.tempMaxHP) / ((float)character.maxHP);
-            tempObject.transform.FindChild("Health/Red Slider/Green Slider").GetComponent<Slider>().value = ((float)character.currentHP) / ((float)character.maxHP);
+            tempObject.transform.FindChild("Character Name").GetComponent<Text>().text = dataScript.playerList[ii].name;
+            tempObject.transform.FindChild("Level Text").GetComponent<Text>().text = "Lv " + dataScript.playerList[ii].level;
+            tempObject.transform.FindChild("Stat_Card Parent/Attack/Attack Text").GetComponent<Text>().text = dataScript.playerList[ii].attackBonus.ToString();
+            tempObject.transform.FindChild("Stat_Card Parent/Movement/Movement Text").GetComponent<Text>().text = "+" + dataScript.playerList[ii].movementBonus.ToString();
+            tempObject.transform.FindChild("Stat_Card Parent/Defense/Defense Text").GetComponent<Text>().text = dataScript.playerList[ii].defenseBonus.ToString();
+            // tempObject.transform.FindChild("Credits/Credits Text").GetComponent<Text>().text = dataScript.playerList[ii].credits.ToString();
+            tempObject.transform.FindChild("Health/HP Text").GetComponent<Text>().text = dataScript.playerList[ii].currentHP + "/" + dataScript.playerList[ii].tempMaxHP;
+            tempObject.transform.FindChild("Health/Red Slider").GetComponent<Slider>().value = ((float)dataScript.playerList[ii].tempMaxHP) / ((float)dataScript.playerList[ii].maxHP);
+            tempObject.transform.FindChild("Health/Red Slider/Green Slider").GetComponent<Slider>().value = ((float)dataScript.playerList[ii].currentHP) / ((float)dataScript.playerList[ii].maxHP);
+
+            // Populate Player's Cards
+            tempObject = tempObject.transform.FindChild("Stat_Card Parent/Card Parent").gameObject;
+            tempObject.transform.FindChild("Card").SetAsLastSibling();
+            for (int kk = tempObject.transform.FindChild("Card").GetSiblingIndex(); kk > 0; kk--)
+            {
+                Destroy(tempObject.transform.GetChild(kk - 1).gameObject);
+            }
+            for (int jj=0; jj < playerHands[ii].Count; jj++)
+            {
+                currentCard = Instantiate(cardPrefab, tempObject.transform) as GameObject;
+                currentCard.transform.SetAsFirstSibling();
+                currentCard.transform.localScale = Vector3.one;
+                // TODO                                                                                                                           vvv   Make that not hardcoded.
+                currentCard.transform.position = new Vector3(tempObject.transform.FindChild("Card").position.x + (jj*35f), tempObject.transform.FindChild("Card").position.y, tempObject.transform.FindChild("Card").position.z);
+                switch(playerHands[ii][jj].type)
+                {
+                    case CardType.Move:
+                        currentCard.transform.FindChild("Text").GetComponent<Text>().text = "+" + playerHands[ii][jj].amount;
+                        currentCard.transform.FindChild("Image").GetComponent<Image>().color = Color.blue;
+                        break;
+                    case CardType.Trap:
+                        switch((TrapType)playerHands[ii][jj].amount)
+                        {
+                            case TrapType.Damage:
+                                currentCard.transform.FindChild("Text").GetComponent<Text>().text = "D";
+                                break;
+                            case TrapType.Empty:
+                                currentCard.transform.FindChild("Text").GetComponent<Text>().text = "E";
+                                break;
+                            case TrapType.Stun:
+                                currentCard.transform.FindChild("Text").GetComponent<Text>().text = "S";
+                                break;
+                            case TrapType.Leg:
+                                currentCard.transform.FindChild("Text").GetComponent<Text>().text = "L";
+                                break;
+                        }
+                        currentCard.transform.FindChild("Image").GetComponent<Image>().color = Color.green;
+                        break;
+                    case CardType.Attack:
+                        currentCard.transform.FindChild("Text").GetComponent<Text>().text = "+" + playerHands[ii][jj].amount;
+                        currentCard.transform.FindChild("Image").GetComponent<Image>().color = Color.red;
+                        break;
+                    case CardType.Defense:
+                        currentCard.transform.FindChild("Text").GetComponent<Text>().text = "+" + playerHands[ii][jj].amount;
+                        currentCard.transform.FindChild("Image").GetComponent<Image>().color = Color.yellow;
+                        break;
+                }
+
+            }
+            tempObject.transform.parent.gameObject.SetActive(true);
+            tempObject.transform.FindChild("Card").gameObject.SetActive(false);
+
+            // Populate Player's Items
+            tempObject = tempObject.transform.parent.parent.FindChild("Item Parent/Images").gameObject;
+            for (int jj = 0; jj < DataControl.NUM_ITEMS_PER_CHARACTER; jj++)
+            {
+                if ((dataScript.playerList[ii].itemIndices.Length > jj) && (dataScript.playerList[ii].itemIndices[jj] != 0))
+                {
+                    tempObject.transform.GetChild(jj).GetComponent<Image>().sprite = Resources.Load<Sprite>(dataScript.pathToItemImages + dataScript.masterItemListClass.list[dataScript.playerList[ii].itemIndices[jj]].imageName);
+                }
+                else
+                {
+                    tempObject.transform.GetChild(jj).GetComponent<Image>().sprite = null;
+                }
+            }
+            tempObject.transform.parent.gameObject.SetActive(false);
+            tempObject = tempObject.transform.parent.parent.gameObject;
+
             switch (tempInt)
             {
                 case 0:
@@ -146,7 +217,7 @@ public class GameControl : MonoBehaviour
 
     public void PlayerClicked(int playerIndex)
     {
-        // TODO Toggle showing hand and items
+        TogglePlayerItems(playerIndex);
     }
 
 
@@ -238,6 +309,21 @@ public class GameControl : MonoBehaviour
         DrawCards(activePlayer, 3);
         InitializePlayerBoxes();
         EndTurn(activePlayer);
+    }
+
+    public void TogglePlayerItems(int playerIndex)
+    {
+        tempObject = playerBoxPlaceholder.transform.parent.GetChild(playerIndex).gameObject;
+        if(tempObject.transform.FindChild("Stat_Card Parent").gameObject.activeInHierarchy)
+        {
+            tempObject.transform.FindChild("Stat_Card Parent").gameObject.SetActive(false);
+            tempObject.transform.FindChild("Item Parent").gameObject.SetActive(true);
+        }
+        else
+        {
+            tempObject.transform.FindChild("Stat_Card Parent").gameObject.SetActive(true);
+            tempObject.transform.FindChild("Item Parent").gameObject.SetActive(false);
+        }
     }
 
 

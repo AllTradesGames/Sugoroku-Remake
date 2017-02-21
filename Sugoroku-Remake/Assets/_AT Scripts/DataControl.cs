@@ -53,6 +53,7 @@ public class DataControl : MonoBehaviour
     public string savedCharacterFileName = "SavedCharacters.dat";
     public string itemFilePath = "Assets/Resources/ItemData/";
     public string itemFileName = "ItemFile.dat";
+    public string pathToItemImages = "Images/Items/";
     // TODO - Item list is currently being generated in ItemListClass constructor
     public ItemListClass masterItemListClass = new ItemListClass();
     public CharacterListClass savedCharacterListClass = new CharacterListClass();

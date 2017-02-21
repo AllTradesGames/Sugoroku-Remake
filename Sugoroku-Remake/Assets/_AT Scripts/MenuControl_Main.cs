@@ -9,8 +9,6 @@ public class MenuControl_Main : MonoBehaviour
 
     public DataControl dataScript;
 
-    public string pathToItemImages = "Images/Items/";
-
     public GameObject startMissionButton;
 
     public GameObject playerBoxPlaceholder;
@@ -99,7 +97,7 @@ public class MenuControl_Main : MonoBehaviour
             tempObject.transform.FindChild("Character Name").GetComponent<Text>().text = character.name;
             tempObject.transform.FindChild("Level Text").GetComponent<Text>().text = "Lv " + character.level;
             tempObject.transform.FindChild("Attack/Attack Text").GetComponent<Text>().text = character.attackBonus.ToString();
-            tempObject.transform.FindChild("Movement/Movement Text").GetComponent<Text>().text = character.movementBonus.ToString();
+            tempObject.transform.FindChild("Movement/Movement Text").GetComponent<Text>().text = "+" + character.movementBonus.ToString();
             tempObject.transform.FindChild("Defense/Defense Text").GetComponent<Text>().text = character.defenseBonus.ToString();
             tempObject.transform.FindChild("Credits/Credits Text").GetComponent<Text>().text = character.credits.ToString();
             tempObject.transform.FindChild("Health/HP Text").GetComponent<Text>().text = character.currentHP + "/" + character.tempMaxHP;
@@ -180,7 +178,7 @@ public class MenuControl_Main : MonoBehaviour
             {
                 if ((character.itemIndices.Length > ii) && (character.itemIndices[ii] != 0))
                 {
-                    tempObject.transform.GetChild(ii).GetComponent<Image>().sprite = Resources.Load<Sprite>(pathToItemImages + dataScript.masterItemListClass.list[character.itemIndices[ii]].imageName);
+                    tempObject.transform.GetChild(ii).GetComponent<Image>().sprite = Resources.Load<Sprite>(dataScript.pathToItemImages + dataScript.masterItemListClass.list[character.itemIndices[ii]].imageName);
                 }
                 else
                 {
@@ -291,7 +289,7 @@ public class MenuControl_Main : MonoBehaviour
         {
             if ((dataScript.playerList[activePlayer].itemIndices.Length > ii) && (dataScript.playerList[activePlayer].itemIndices[ii] != 0))
             {
-                tempObject.transform.GetChild(ii).FindChild("Image").GetComponent<Image>().sprite = Resources.Load<Sprite>(pathToItemImages + dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].imageName);
+                tempObject.transform.GetChild(ii).FindChild("Image").GetComponent<Image>().sprite = Resources.Load<Sprite>(dataScript.pathToItemImages + dataScript.masterItemListClass.list[dataScript.playerList[activePlayer].itemIndices[ii]].imageName);
                 if (!dataScript.playerList[activePlayer].identifiedItems[dataScript.playerList[activePlayer].itemIndices[ii]])
                 {
                     tempObject.transform.GetChild(ii).FindChild("Text").GetComponent<Text>().text = "???";
@@ -558,6 +556,7 @@ public class MenuControl_Main : MonoBehaviour
     public void StartMissionConfirmed()
     {
         Debug.Log("StartMissionConfirmed()");
+        UnityEngine.SceneManagement.SceneManager.LoadScene(1);
     }
 
 
