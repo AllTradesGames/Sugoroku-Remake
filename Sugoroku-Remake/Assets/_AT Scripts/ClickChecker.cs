@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class ClickChecker : MonoBehaviour
 {
+    public bool moveCheck;
+
     private GameControl gameScript;
 
 	// Use this for initialization
@@ -14,6 +16,18 @@ public class ClickChecker : MonoBehaviour
 
     private void OnMouseDown()
     {
-        gameScript.AttackCharacterClicked(this.gameObject.GetComponent<CharacterControl>());
+        if (moveCheck)
+        {
+            foreach (GameObject mb in GameObject.FindGameObjectsWithTag("MoveBlock"))
+            {
+                GetComponent<SpriteRenderer>().color = Color.blue;
+            }
+            GetComponent<SpriteRenderer>().color = Color.green;
+            gameScript.MoveBlockClicked(new Vector2(transform.position.x, transform.position.y));
+        }
+        else
+        {
+            gameScript.AttackCharacterClicked(this.gameObject.GetComponent<CharacterControl>());
+        }
     }
 }

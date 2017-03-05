@@ -47,6 +47,8 @@ public class GameControl : MonoBehaviour
     public GameObject defendingCardPanel;
     public GameObject attackingCardPanel;
     public GameObject surrenderItemsPanel;
+    public GameObject moveConfirmPanel;
+    public AstarPath aStarScript;
 
     private DataControl dataScript;
     private int activePlayer = 0;
@@ -60,13 +62,17 @@ public class GameControl : MonoBehaviour
     private int defendingCharacterIndex = -1;
     private ActionType currentCombatAction;
     private bool failedRun = false;
+    private Transform pathfindingTarget;
 
     private int activePlayerRoll = 0;
     private int defendingCharacterRoll = 0;
 
+
+
     private void Awake()
     {
         dataScript = GameObject.FindGameObjectWithTag("DataController").GetComponent<DataControl>();
+        pathfindingTarget = GameObject.FindGameObjectWithTag("PathfindingTarget").transform;
         Random.InitState((int)(Time.time * 100f));
     }
 
@@ -80,8 +86,9 @@ public class GameControl : MonoBehaviour
         {
             playerHands.Add(new List<Card>());
             DrawCards(ii, startingHandSize);
-            playerModels.Add(Instantiate(Resources.Load(dataScript.playerList[ii].pathToModel), new Vector3(5 + (ii * 10), 0f, 5f), Quaternion.identity) as GameObject);
+            playerModels.Add(Instantiate(Resources.Load(dataScript.playerList[ii].pathToModel), new Vector3(0f, 1f + (ii * 1f), 0f), Quaternion.Euler(-90f, 0f, 0f)) as GameObject);
         }
+        aStarScript.Scan();
         for (int ii = 0; ii < playerModels.Count; ii++)
         {
             playerModels[ii].GetComponent<CharacterControl>().characterIndex = ii;
@@ -159,7 +166,14 @@ public class GameControl : MonoBehaviour
                 switch(playerHands[ii][jj].type)
                 {
                     case CardType.Move:
-                        currentCard.transform.FindChild("Text").GetComponent<Text>().text = "+" + playerHands[ii][jj].amount;
+                        if (playerHands[activePlayer][jj].amount > 0)
+                        {
+                            currentCard.transform.FindChild("Text").GetComponent<Text>().text = "+" + playerHands[activePlayer][jj].amount;
+                        }
+                        else
+                        {
+                            currentCard.transform.FindChild("Text").GetComponent<Text>().text = "E";
+                        }
                         currentCard.transform.FindChild("Button").GetComponent<Image>().color = Color.blue;
                         break;
                     case CardType.Trap:
@@ -241,9 +255,16 @@ public class GameControl : MonoBehaviour
 
     public void MoveButtonClicked()
     {
+        Debug.Log("Move button clicked");
         restConfirmPanel.SetActive(false);
         attackConfirmPanel.SetActive(false);
+        moveConfirmPanel.SetActive(false);
+        attackingCardPanel.SetActive(false);
         RemoveClickCheckers();
+        if (!hasActivePlayerMoved)
+        {
+            ShowCards(activePlayer, ActionType.Move);
+        }
     }
 
 
@@ -272,6 +293,7 @@ public class GameControl : MonoBehaviour
         }
         hasActivePlayerAttacked = false;
         hasActivePlayerMoved = false;
+        moveConfirmPanel.SetActive(false);
         StartTurn(activePlayer);
     }
 
@@ -282,21 +304,12 @@ public class GameControl : MonoBehaviour
     }
 
 
-    public void ShowMoveTiles()
-    {
-        // TODO Show active character's move tiles (should be done after applying all movement buffs and rolling movement die)
-    }
-
-
-    public void MoveTileClicked()
-    {
-
-    }
-
-
     public void AttackButtonClicked()
     {
         restConfirmPanel.SetActive(false);
+        attackingCardPanel.SetActive(false);
+        moveConfirmPanel.SetActive(false);
+        RemoveClickCheckers();
         if (!hasActivePlayerAttacked)
         {
             // Check nearby spaces for characters and add ClickCheckers
@@ -551,6 +564,7 @@ public class GameControl : MonoBehaviour
             {
                 // Show attacking player's cards
                 attackingCardPanel.SetActive(true);
+                attackingCardPanel.transform.FindChild("'X'").GetComponent<Button>().onClick.AddListener(delegate { AttackerCardChosen(-1); });
                 tempObject = attackingCardPanel.transform.FindChild("Card Parent").gameObject;
                 tempObject.transform.FindChild("Card").SetAsLastSibling();
                 for (int kk = tempObject.transform.FindChild("Card").GetSiblingIndex(); kk > 0; kk--)
@@ -567,7 +581,14 @@ public class GameControl : MonoBehaviour
                     switch (playerHands[activePlayer][jj].type)
                     {
                         case CardType.Move:
-                            currentCard.transform.FindChild("Text").GetComponent<Text>().text = "+" + playerHands[activePlayer][jj].amount;
+                            if (playerHands[activePlayer][jj].amount > 0)
+                            {
+                                currentCard.transform.FindChild("Text").GetComponent<Text>().text = "+" + playerHands[activePlayer][jj].amount;
+                            }
+                            else
+                            {
+                                currentCard.transform.FindChild("Text").GetComponent<Text>().text = "E";
+                            }
                             currentCard.transform.FindChild("Button").GetComponent<Image>().color = Color.blue;
                             if (currentCombatAction == ActionType.Run)
                             {
@@ -630,7 +651,85 @@ public class GameControl : MonoBehaviour
             else if (inputAction == ActionType.Move)
             {
                 // Show moving player's cards
-                // delegate MovingCardChosen(int cardIndex)            
+                attackingCardPanel.SetActive(true);
+                attackingCardPanel.transform.FindChild("'X'").GetComponent<Button>().onClick.AddListener(delegate { MovingCardChosen(-1); });
+                tempObject = attackingCardPanel.transform.FindChild("Card Parent").gameObject;
+                tempObject.transform.FindChild("Card").SetAsLastSibling();
+                for (int kk = tempObject.transform.FindChild("Card").GetSiblingIndex(); kk > 0; kk--)
+                {
+                    Destroy(tempObject.transform.GetChild(kk - 1).gameObject);
+                }
+                for (int jj = 0; jj < playerHands[activePlayer].Count; jj++)
+                {
+                    currentCard = Instantiate(selectableCardPrefab, tempObject.transform) as GameObject;
+                    currentCard.transform.SetAsFirstSibling();
+                    currentCard.transform.localScale = Vector3.one;
+                    // TODO                                                                                                vvv   Make that not hardcoded.
+                    currentCard.transform.position = new Vector3(tempObject.transform.FindChild("Card").position.x + (jj * 83f), tempObject.transform.FindChild("Card").position.y, tempObject.transform.FindChild("Card").position.z);
+                    switch (playerHands[activePlayer][jj].type)
+                    {
+                        case CardType.Move:
+                            if (playerHands[activePlayer][jj].amount > 0)
+                            {
+                                currentCard.transform.FindChild("Text").GetComponent<Text>().text = "+" + playerHands[activePlayer][jj].amount;
+                            }
+                            else
+                            {
+                                currentCard.transform.FindChild("Text").GetComponent<Text>().text = "E";
+                            }
+                            currentCard.transform.FindChild("Button").GetComponent<Image>().color = Color.blue;
+                            currentCard.transform.FindChild("Button").GetComponent<Button>().interactable = true;
+                            break;
+                        case CardType.Trap:
+                            switch ((TrapType)playerHands[activePlayer][jj].amount)
+                            {
+                                case TrapType.Damage:
+                                    currentCard.transform.FindChild("Text").GetComponent<Text>().text = "D";
+                                    break;
+                                case TrapType.Empty:
+                                    currentCard.transform.FindChild("Text").GetComponent<Text>().text = "E";
+                                    break;
+                                case TrapType.Stun:
+                                    currentCard.transform.FindChild("Text").GetComponent<Text>().text = "S";
+                                    break;
+                                case TrapType.Leg:
+                                    currentCard.transform.FindChild("Text").GetComponent<Text>().text = "L";
+                                    break;
+                            }
+                            currentCard.transform.FindChild("Button").GetComponent<Image>().color = Color.green;
+                            currentCard.transform.FindChild("Button").GetComponent<Button>().interactable = true;
+                            break;
+                        case CardType.Attack:
+                            currentCard.transform.FindChild("Text").GetComponent<Text>().text = "+" + playerHands[activePlayer][jj].amount;
+                            currentCard.transform.FindChild("Button").GetComponent<Image>().color = Color.red;
+                            currentCard.transform.FindChild("Button").GetComponent<Button>().interactable = false;
+                            break;
+                        case CardType.Defense:
+                            currentCard.transform.FindChild("Text").GetComponent<Text>().text = "+" + playerHands[activePlayer][jj].amount;
+                            currentCard.transform.FindChild("Button").GetComponent<Image>().color = Color.yellow;
+                            currentCard.transform.FindChild("Button").GetComponent<Button>().interactable = true;
+                            break;
+                    }
+                    switch (jj)
+                    {
+                        case 0:
+                            currentCard.transform.FindChild("Button").GetComponent<Button>().onClick.AddListener(delegate { MovingCardChosen(0); });
+                            break;
+                        case 1:
+                            currentCard.transform.FindChild("Button").GetComponent<Button>().onClick.AddListener(delegate { MovingCardChosen(1); });
+                            break;
+                        case 2:
+                            currentCard.transform.FindChild("Button").GetComponent<Button>().onClick.AddListener(delegate { MovingCardChosen(2); });
+                            break;
+                        case 3:
+                            currentCard.transform.FindChild("Button").GetComponent<Button>().onClick.AddListener(delegate { MovingCardChosen(3); });
+                            break;
+                        case 4:
+                            currentCard.transform.FindChild("Button").GetComponent<Button>().onClick.AddListener(delegate { MovingCardChosen(4); });
+                            break;
+                    }
+                }
+                tempObject.transform.FindChild("Card").gameObject.SetActive(false);           
             }
         }
         else if (playerIndex == defendingCharacterIndex)
@@ -653,7 +752,14 @@ public class GameControl : MonoBehaviour
                 switch (playerHands[defendingCharacterIndex][jj].type)
                 {
                     case CardType.Move:
-                        currentCard.transform.FindChild("Text").GetComponent<Text>().text = "+" + playerHands[defendingCharacterIndex][jj].amount;
+                        if (playerHands[activePlayer][jj].amount > 0)
+                        {
+                            currentCard.transform.FindChild("Text").GetComponent<Text>().text = "+" + playerHands[activePlayer][jj].amount;
+                        }
+                        else
+                        {
+                            currentCard.transform.FindChild("Text").GetComponent<Text>().text = "E";
+                        }
                         currentCard.transform.FindChild("Button").GetComponent<Image>().color = Color.blue;
                         if (currentCombatAction == ActionType.Run)
                         {
@@ -739,7 +845,14 @@ public class GameControl : MonoBehaviour
                     dataScript.playerList[defendingCharacterIndex].defenseBonus += playerHands[defendingCharacterIndex][cardIndex].amount;
                     break;
                 case CardType.Move:
-                    dataScript.playerList[defendingCharacterIndex].movementBonus += playerHands[defendingCharacterIndex][cardIndex].amount;
+                    if (playerHands[defendingCharacterIndex][cardIndex].amount > 0)
+                    {
+                        dataScript.playerList[defendingCharacterIndex].movementBonus += playerHands[defendingCharacterIndex][cardIndex].amount;
+                    }
+                    else
+                    {
+                        dataScript.playerList[defendingCharacterIndex].movementBonus += 12;
+                    }
                     break;
             }
             playerHands[defendingCharacterIndex].RemoveAt(cardIndex);
@@ -762,7 +875,14 @@ public class GameControl : MonoBehaviour
                     dataScript.playerList[activePlayer].defenseBonus += playerHands[activePlayer][cardIndex].amount;
                     break;
                 case CardType.Move:
-                    dataScript.playerList[activePlayer].movementBonus += playerHands[activePlayer][cardIndex].amount;
+                    if (playerHands[activePlayer][cardIndex].amount > 0)
+                    {
+                        dataScript.playerList[activePlayer].movementBonus += playerHands[activePlayer][cardIndex].amount;
+                    }
+                    else
+                    {
+                        dataScript.playerList[activePlayer].movementBonus += 12;
+                    }
                     break;
             }
             playerHands[activePlayer].RemoveAt(cardIndex);
@@ -780,24 +900,62 @@ public class GameControl : MonoBehaviour
 
     public void MovingCardChosen(int cardIndex)
     {
+        Debug.Log("Moving card chosen: " + cardIndex);
         if (cardIndex >= 0)
         {
             switch (playerHands[activePlayer][cardIndex].type)
             {
-                case CardType.Attack:
-                    dataScript.playerList[activePlayer].attackBonus += playerHands[defendingCharacterIndex][cardIndex].amount;
-                    break;
                 case CardType.Defense:
-                    dataScript.playerList[activePlayer].defenseBonus += playerHands[defendingCharacterIndex][cardIndex].amount;
+                    if ((playerHands[activePlayer][cardIndex].amount == 1) || (playerHands[activePlayer][cardIndex].amount == 2))
+                    {
+                        dataScript.playerList[activePlayer].defenseBonus += 10;
+                    }
+                    else
+                    {
+                        dataScript.playerList[activePlayer].defenseBonus += playerHands[activePlayer][cardIndex].amount;
+                    }
                     break;
                 case CardType.Move:
-                    dataScript.playerList[activePlayer].movementBonus += playerHands[defendingCharacterIndex][cardIndex].amount;
+                    if (playerHands[activePlayer][cardIndex].amount == 0)
+                    {
+                        TeleportPlayer(activePlayer);
+                    }
+                    else
+                    {
+                        dataScript.playerList[activePlayer].movementBonus += playerHands[activePlayer][cardIndex].amount;
+                    }
                     break;
                 case CardType.Trap:
                     // TODO Place a Trap at current location
                     break;
             }
+            playerHands[activePlayer].RemoveAt(cardIndex);
+            InitializePlayerBoxes();
         }
+        attackingCardPanel.SetActive(false);
+
+        // Roll one movement die
+        ShowDice(ActionType.Move);
+        
+    }
+
+
+    public void MoveBlockClicked(Vector2 moveBlockPosition)
+    {
+        moveConfirmPanel.SetActive(true);
+        pathfindingTarget.position = new Vector3(moveBlockPosition.x, moveBlockPosition.y, 0f);
+    }
+
+
+    public void MoveBlockConfirmed()
+    {
+        moveConfirmPanel.SetActive(false);
+        foreach (GameObject mb in GameObject.FindGameObjectsWithTag("MoveBlock"))
+        {
+            Destroy(mb);
+        }        
+        playerModels[activePlayer].GetComponent<AILerp>().SearchPath();
+        hasActivePlayerMoved = true;
     }
 
 
@@ -856,7 +1014,20 @@ public class GameControl : MonoBehaviour
                 }
                 break;
             case ActionType.Move:
-                // TODO Move stuff yo
+                // Determine movement roll
+                activePlayerRoll = (int)Random.Range(-0.49f, 6.49f);
+                Debug.Log(dataScript.playerList[activePlayer].name + " rolled " + activePlayerRoll + " on move");
+                activePlayerRoll += dataScript.playerList[activePlayer].movementBonus;
+
+                // Calculate which spaces the active player can move to and place movement blocks on those spaces (# spaces = 2x^2 + 2x, where x is movement bonus)
+                //tempInt = (2 * (activePlayerRoll ^ 2)) + (2 * activePlayerRoll);
+
+                // Loop through each potential move point and see if it can be reached within the active player's move bonus
+                for (int ii=-activePlayerRoll; ii<=activePlayerRoll; ii++)
+                {
+
+                }
+
                 break;
         }
     }
@@ -943,6 +1114,8 @@ public class GameControl : MonoBehaviour
     {
         RemoveClickCheckers();
         attackConfirmPanel.SetActive(false);
+        moveConfirmPanel.SetActive(false);
+        attackingCardPanel.SetActive(false);
         if (!hasActivePlayerMoved && !hasActivePlayerAttacked)
         {
             restConfirmPanel.transform.FindChild("Text").GetComponent<Text>().text = "Use your turn to Rest and heal " + Mathf.CeilToInt(dataScript.playerList[activePlayer].tempMaxHP * restRatio) + "HP?";
